@@ -25,9 +25,12 @@ class LumaSource:
         headers = {"User-Agent": _USER_AGENT, "Accept": "application/json"}
         with httpx.Client(timeout=_TIMEOUT, headers=headers) as client:
             for slug in self.ai_calendars:
-                resp = client.get(CALENDAR_URL, params={"calendar_api_id": slug})
-                resp.raise_for_status()
-                events.extend(self._parse(resp.json()))
+                try:
+                    resp = client.get(CALENDAR_URL, params={"calendar_api_id": slug})
+                    resp.raise_for_status()
+                    events.extend(self._parse(resp.json()))
+                except httpx.HTTPError as exc:
+                    print(f"[luma] skipping calendar {slug!r}: {exc}")
         return events
 
     def _parse(self, payload: dict) -> List[RawEvent]:

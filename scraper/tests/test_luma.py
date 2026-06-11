@@ -44,3 +44,22 @@ def test_fetch_handles_missing_optional_fields():
     assert raw[0].title == "Bare Event"
     assert raw[0].location is None
     assert raw[0].is_free is None
+
+
+@respx.mock
+def test_fetch_skips_failing_slug_and_returns_others():
+    respx.get(CALENDAR_URL, params={"calendar_api_id": "broken"}).mock(
+        return_value=httpx.Response(500)
+    )
+    respx.get(CALENDAR_URL, params={"calendar_api_id": "working"}).mock(
+        return_value=httpx.Response(
+            200,
+            json={"entries": [{"event": {"name": "Good Event", "url": "good"}}]},
+        )
+    )
+
+    src = LumaSource(ai_calendars=["broken", "working"], ai_queries=[])
+    raw = src.fetch()
+
+    assert len(raw) == 1
+    assert raw[0].title == "Good Event"
