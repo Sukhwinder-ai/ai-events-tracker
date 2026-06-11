@@ -15,10 +15,14 @@ export function shapeFetch(
 }
 
 export async function fetchEvents(): Promise<FetchResult> {
-  const supabase = getServerClient();
-  const [{ data: rows }, { data: runs }] = await Promise.all([
-    supabase.from("events").select("*"),
-    supabase.from("scrape_runs").select("id").order("id", { ascending: false }).limit(1),
-  ]);
-  return shapeFetch((rows ?? []) as EventRow[], (runs ?? []) as { id: number }[]);
+  try {
+    const supabase = getServerClient();
+    const [{ data: rows }, { data: runs }] = await Promise.all([
+      supabase.from("events").select("*"),
+      supabase.from("scrape_runs").select("id").order("id", { ascending: false }).limit(1),
+    ]);
+    return shapeFetch((rows ?? []) as EventRow[], (runs ?? []) as { id: number }[]);
+  } catch {
+    return { events: [], latestRun: null };
+  }
 }

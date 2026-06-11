@@ -4,7 +4,6 @@ import Dashboard from "./components/Dashboard";
 import BackgroundVideo from "./components/BackgroundVideo";
 import { setStatus } from "./actions";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
 export default async function Home() {
