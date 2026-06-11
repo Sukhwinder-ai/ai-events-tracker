@@ -5,6 +5,7 @@ import httpx
 from aiscraper.models import RawEvent
 
 CALENDAR_URL = "https://api.lu.ma/calendar/get-items"
+SEARCH_URL = "https://api.lu.ma/search/get-results"
 _TIMEOUT = 20.0
 _USER_AGENT = "ai-events-tracker/0.1 (personal, read-only)"
 
@@ -31,7 +32,26 @@ class LumaSource:
                     events.extend(self._parse(resp.json()))
                 except httpx.HTTPError as exc:
                     print(f"[luma] skipping calendar {slug!r}: {exc}")
-        return events
+            for query in self.ai_queries:
+                try:
+                    resp = client.get(SEARCH_URL, params={"query": query})
+                    resp.raise_for_status()
+                    events.extend(self._parse(resp.json()))
+                except httpx.HTTPError as exc:
+                    print(f"[luma] skipping query {query!r}: {exc}")
+        return self._dedup_by_url(events)
+
+    @staticmethod
+    def _dedup_by_url(events: List[RawEvent]) -> List[RawEvent]:
+        seen = set()
+        out: List[RawEvent] = []
+        for ev in events:
+            if ev.url is not None and ev.url in seen:
+                continue
+            if ev.url is not None:
+                seen.add(ev.url)
+            out.append(ev)
+        return out
 
     def _parse(self, payload: dict) -> List[RawEvent]:
         out: List[RawEvent] = []

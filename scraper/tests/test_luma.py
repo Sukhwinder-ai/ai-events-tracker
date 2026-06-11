@@ -1,6 +1,10 @@
 import httpx
 import respx
-from aiscraper.sources.luma import LumaSource, CALENDAR_URL
+from aiscraper.sources.luma import LumaSource, CALENDAR_URL, SEARCH_URL
+
+
+def _entry(name, slug):
+    return {"event": {"name": name, "url": slug}}
 
 
 @respx.mock
@@ -63,3 +67,39 @@ def test_fetch_skips_failing_slug_and_returns_others():
 
     assert len(raw) == 1
     assert raw[0].title == "Good Event"
+
+
+@respx.mock
+def test_fetch_queries_search_endpoint_for_each_query():
+    respx.get(SEARCH_URL, params={"query": "machine learning"}).mock(
+        return_value=httpx.Response(
+            200, json={"entries": [_entry("ML Meetup", "ml-meetup")]}
+        )
+    )
+
+    src = LumaSource(ai_calendars=[], ai_queries=["machine learning"])
+    raw = src.fetch()
+
+    assert len(raw) == 1
+    assert raw[0].title == "ML Meetup"
+    assert raw[0].url == "https://lu.ma/ml-meetup"
+
+
+@respx.mock
+def test_fetch_dedups_calendar_and_query_results_by_url():
+    respx.get(CALENDAR_URL, params={"calendar_api_id": "brisbane-ai"}).mock(
+        return_value=httpx.Response(
+            200, json={"entries": [_entry("Shared Event", "shared")]}
+        )
+    )
+    respx.get(SEARCH_URL, params={"query": "AI"}).mock(
+        return_value=httpx.Response(
+            200, json={"entries": [_entry("Shared Event", "shared")]}
+        )
+    )
+
+    src = LumaSource(ai_calendars=["brisbane-ai"], ai_queries=["AI"])
+    raw = src.fetch()
+
+    assert len(raw) == 1
+    assert raw[0].url == "https://lu.ma/shared"
