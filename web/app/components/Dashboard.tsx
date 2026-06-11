@@ -25,11 +25,12 @@ export default function Dashboard({
   }
 
   async function handleSetStatus(id: string, status: StatusValue) {
+    const prevStatus = events.find((e) => e.id === id)?.status ?? null;
     setEvents((prev) => prev.map((e) => (e.id === id ? { ...e, status } : e)));
     try {
       await action(id, status);
     } catch {
-      setEvents(initialEvents);
+      setEvents((prev) => prev.map((e) => (e.id === id ? { ...e, status: prevStatus } : e)));
     }
   }
 

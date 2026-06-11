@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import Dashboard from "./Dashboard";
 import type { EventView } from "@/lib/types";
 
@@ -30,5 +30,29 @@ describe("Dashboard", () => {
     fireEvent.click(screen.getByText("Ipswich"));
     expect(screen.queryByText("Bris Event")).toBeNull();
     expect(screen.getByText("Ips Event")).toBeDefined();
+  });
+
+  it("reverts only the failed event on a rejected write, keeping other skips applied", async () => {
+    const events = [
+      view({ id: "A", title: "Event A" }),
+      view({ id: "B", title: "Event B" }),
+    ];
+    const action = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("write failed"));
+    render(<Dashboard initialEvents={events} action={action} />);
+
+    const cardB = screen.getByText("Event B").closest(".card") as HTMLElement;
+    fireEvent.click(within(cardB).getByText(/✕ Skip/));
+    expect(screen.queryByText("Event B")).toBeNull();
+
+    const cardA = screen.getByText("Event A").closest(".card") as HTMLElement;
+    fireEvent.click(within(cardA).getByText(/✕ Skip/));
+    expect(screen.queryByText("Event A")).toBeNull();
+
+    await waitFor(() => expect(screen.getByText("Event A")).toBeDefined());
+    expect(screen.queryByText("Event B")).toBeNull();
+    expect(action).toHaveBeenCalledTimes(2);
   });
 });
