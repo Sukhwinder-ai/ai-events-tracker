@@ -24,3 +24,21 @@ describe("markNew", () => {
     expect(result[0].isNew).toBe(false);
   });
 });
+
+import { visibleInTab } from "./events";
+
+describe("visibleInTab", () => {
+  it("All shows everything except skipped", () => {
+    expect(visibleInTab("all", null)).toBe(true);
+    expect(visibleInTab("all", "interested")).toBe(true);
+    expect(visibleInTab("all", "attending")).toBe(true);
+    expect(visibleInTab("all", "skip")).toBe(false);
+  });
+
+  it("specific tabs show only their own status", () => {
+    expect(visibleInTab("interested", "interested")).toBe(true);
+    expect(visibleInTab("interested", "attending")).toBe(false);
+    expect(visibleInTab("skipped", "skip")).toBe(true);
+    expect(visibleInTab("skipped", null)).toBe(false);
+  });
+});
