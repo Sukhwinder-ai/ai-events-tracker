@@ -1,0 +1,30 @@
+name: Fortnightly AI events scrape
+
+on:
+  schedule:
+    # 02:00 UTC on the 1st and 15th of each month ≈ fortnightly
+    - cron: "0 2 1,15 * *"
+  workflow_dispatch: {}   # allow manual runs from the Actions tab
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: scraper
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: pip install -e ".[dev]"
+      - name: Run tests
+        run: pytest -q
+      - name: Scrape
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          LUMA_AI_CALENDARS: ${{ secrets.LUMA_AI_CALENDARS }}
+          LUMA_AI_QUERIES: ${{ secrets.LUMA_AI_QUERIES }}
+        run: python run.py
