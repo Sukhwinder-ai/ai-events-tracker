@@ -1,0 +1,23 @@
+# Secrets
+.env
+.env.local
+**/.env
+**/.env.local
+
+# Node
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Superpowers visual companion scratch
+.superpowers/
+
+# OS
+.DS_Store
