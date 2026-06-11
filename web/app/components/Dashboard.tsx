@@ -40,7 +40,7 @@ export default function Dashboard({
       city: s.city, freeOnly: s.freeOnly, newOnly: s.newOnly, search: s.search,
     });
     return sortEvents(filtered, s.sort);
-  }, [events, s]);
+  }, [events, s.tab, s.city, s.freeOnly, s.newOnly, s.search, s.sort]);
 
   return (
     <div>
