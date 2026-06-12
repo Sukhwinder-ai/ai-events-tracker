@@ -44,8 +44,35 @@ export default function Dashboard({
 
   return (
     <div>
-      <Controls state={s} onChange={update} newCount={newCount} />
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 16 }}>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: 16,
+        }}
+      >
+        <div style={{ flex: "0 0 auto" }}>
+          <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>
+            <span style={{ color: "var(--accent)" }}>AI</span> Events Tracker
+          </h1>
+          <p style={{ color: "var(--muted)", fontSize: 13, margin: "4px 0 0" }}>
+            Brisbane &amp; Ipswich · {events.length} events
+          </p>
+        </div>
+        <div style={{ flex: "1 1 480px", minWidth: 0 }}>
+          <Controls state={s} onChange={update} newCount={newCount} />
+        </div>
+      </div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 12,
+          marginTop: 16,
+        }}
+      >
         {shown.map((e) => (
           <EventCard key={e.id} event={e} onSetStatus={handleSetStatus} />
         ))}

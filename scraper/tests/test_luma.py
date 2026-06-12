@@ -1,68 +1,93 @@
 import httpx
 import respx
-from aiscraper.sources.luma import LumaSource, CALENDAR_URL, SEARCH_URL
+from aiscraper.sources.luma import LumaSource, CityQuery, DISCOVER_URL
+
+BRIS = CityQuery("brisbane", -27.4679, 153.0281)
+IPSW = CityQuery("ipswich", -27.6171, 152.7609)
 
 
-def _entry(name, slug):
-    return {"event": {"name": name, "url": slug}}
-
-
-@respx.mock
-def test_fetch_calendar_parses_entries():
-    payload = {
+def _payload(name, slug, city="Fortitude Valley", is_free=True):
+    # Mirrors api.luma.com/discover/get-paginated-events: ticket_info lives at
+    # the ENTRY level, geo_address_info.city is a suburb, url is a bare slug.
+    return {
         "entries": [
             {
                 "event": {
-                    "name": "Brisbane AI Builders",
-                    "start_at": "2026-06-14T18:00:00+10:00",
-                    "geo_address_info": {"city_state": "Fortitude Valley, Brisbane"},
-                    "url": "brisbane-ai-builders",
-                    "ticket_info": {"is_free": True},
-                }
+                    "name": name,
+                    "start_at": "2026-06-14T18:00:00.000Z",
+                    "url": slug,
+                    "geo_address_info": {"city": city, "region": "Queensland"},
+                },
+                "ticket_info": None if is_free is None else {"is_free": is_free},
             }
-        ]
+        ],
+        "has_more": False,
+        "next_cursor": None,
     }
-    respx.get(CALENDAR_URL, params={"calendar_api_id": "brisbane-ai"}).mock(
-        return_value=httpx.Response(200, json=payload)
-    )
 
-    src = LumaSource(ai_calendars=["brisbane-ai"], ai_queries=[])
+
+@respx.mock
+def test_fetch_discover_parses_entry_fields():
+    respx.get(DISCOVER_URL, params={"slug": "ai", "latitude": "-27.4679"}).mock(
+        return_value=httpx.Response(
+            200, json=_payload("Brisbane AI Builders", "brisbane-ai-builders")
+        )
+    )
+    src = LumaSource(cities=[BRIS], slug="ai")
     raw = src.fetch()
 
     assert len(raw) == 1
     assert raw[0].title == "Brisbane AI Builders"
-    assert raw[0].location == "Fortitude Valley, Brisbane"
+    assert raw[0].starts_at == "2026-06-14T18:00:00.000Z"
+    assert raw[0].location == "Fortitude Valley"
     assert raw[0].is_free is True
     assert raw[0].url == "https://lu.ma/brisbane-ai-builders"
     assert raw[0].source == "luma"
+    assert raw[0].city == "brisbane"
+
+
+@respx.mock
+def test_fetch_stamps_city_from_query_not_location():
+    respx.get(DISCOVER_URL, params={"latitude": "-27.4679"}).mock(
+        return_value=httpx.Response(200, json=_payload("Bris Event", "bris"))
+    )
+    respx.get(DISCOVER_URL, params={"latitude": "-27.6171"}).mock(
+        return_value=httpx.Response(
+            200, json=_payload("Ips Event", "ips", city="Ipswich")
+        )
+    )
+    src = LumaSource(cities=[BRIS, IPSW], slug="ai")
+    raw = src.fetch()
+
+    assert {r.title: r.city for r in raw} == {
+        "Bris Event": "brisbane",
+        "Ips Event": "ipswich",
+    }
 
 
 @respx.mock
 def test_fetch_handles_missing_optional_fields():
     payload = {"entries": [{"event": {"name": "Bare Event"}}]}
-    respx.get(CALENDAR_URL, params={"calendar_api_id": "brisbane-ai"}).mock(
-        return_value=httpx.Response(200, json=payload)
-    )
-    src = LumaSource(ai_calendars=["brisbane-ai"], ai_queries=[])
+    respx.get(DISCOVER_URL).mock(return_value=httpx.Response(200, json=payload))
+    src = LumaSource(cities=[BRIS], slug="ai")
     raw = src.fetch()
     assert raw[0].title == "Bare Event"
     assert raw[0].location is None
     assert raw[0].is_free is None
+    assert raw[0].url is None
 
 
 @respx.mock
-def test_fetch_skips_failing_slug_and_returns_others():
-    respx.get(CALENDAR_URL, params={"calendar_api_id": "broken"}).mock(
+def test_fetch_skips_failing_city_and_returns_others():
+    respx.get(DISCOVER_URL, params={"latitude": "-27.4679"}).mock(
         return_value=httpx.Response(500)
     )
-    respx.get(CALENDAR_URL, params={"calendar_api_id": "working"}).mock(
+    respx.get(DISCOVER_URL, params={"latitude": "-27.6171"}).mock(
         return_value=httpx.Response(
-            200,
-            json={"entries": [{"event": {"name": "Good Event", "url": "good"}}]},
+            200, json=_payload("Good Event", "good", city="Ipswich")
         )
     )
-
-    src = LumaSource(ai_calendars=["broken", "working"], ai_queries=[])
+    src = LumaSource(cities=[BRIS, IPSW], slug="ai")
     raw = src.fetch()
 
     assert len(raw) == 1
@@ -70,36 +95,18 @@ def test_fetch_skips_failing_slug_and_returns_others():
 
 
 @respx.mock
-def test_fetch_queries_search_endpoint_for_each_query():
-    respx.get(SEARCH_URL, params={"query": "machine learning"}).mock(
+def test_fetch_dedups_by_url_across_cities():
+    respx.get(DISCOVER_URL, params={"latitude": "-27.4679"}).mock(
+        return_value=httpx.Response(200, json=_payload("Shared", "shared"))
+    )
+    respx.get(DISCOVER_URL, params={"latitude": "-27.6171"}).mock(
         return_value=httpx.Response(
-            200, json={"entries": [_entry("ML Meetup", "ml-meetup")]}
+            200, json=_payload("Shared", "shared", city="Ipswich")
         )
     )
-
-    src = LumaSource(ai_calendars=[], ai_queries=["machine learning"])
-    raw = src.fetch()
-
-    assert len(raw) == 1
-    assert raw[0].title == "ML Meetup"
-    assert raw[0].url == "https://lu.ma/ml-meetup"
-
-
-@respx.mock
-def test_fetch_dedups_calendar_and_query_results_by_url():
-    respx.get(CALENDAR_URL, params={"calendar_api_id": "brisbane-ai"}).mock(
-        return_value=httpx.Response(
-            200, json={"entries": [_entry("Shared Event", "shared")]}
-        )
-    )
-    respx.get(SEARCH_URL, params={"query": "AI"}).mock(
-        return_value=httpx.Response(
-            200, json={"entries": [_entry("Shared Event", "shared")]}
-        )
-    )
-
-    src = LumaSource(ai_calendars=["brisbane-ai"], ai_queries=["AI"])
+    src = LumaSource(cities=[BRIS, IPSW], slug="ai")
     raw = src.fetch()
 
     assert len(raw) == 1
     assert raw[0].url == "https://lu.ma/shared"
+    assert raw[0].city == "brisbane"  # first city queried wins the dedup

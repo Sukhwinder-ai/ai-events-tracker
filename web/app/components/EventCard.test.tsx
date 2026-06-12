@@ -25,4 +25,11 @@ describe("EventCard", () => {
     fireEvent.click(screen.getByText(/Skip/));
     expect(onSet).toHaveBeenCalledWith("1", "skip");
   });
+
+  it("clears status to null when the active status button is clicked again (unskip)", () => {
+    const onSet = vi.fn();
+    render(<EventCard event={view({ status: "skip" })} onSetStatus={onSet} />);
+    fireEvent.click(screen.getByText(/Unskip/));
+    expect(onSet).toHaveBeenCalledWith("1", null);
+  });
 });

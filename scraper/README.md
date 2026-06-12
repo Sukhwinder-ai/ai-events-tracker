@@ -20,8 +20,8 @@ Then edit `.env` and fill in:
 - `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (from the Supabase
   Dashboard -> Project Settings -> API). The service_role key is secret and
   write-only for the scraper — never expose it to a browser.
-- `LUMA_AI_CALENDARS` — comma-separated Luma AI calendar slugs to pull from.
-- `LUMA_AI_QUERIES` — comma-separated AI search terms queried against Luma.
+- `LUMA_CATEGORY_SLUG` — Luma discover category slug to pull (defaults to
+  `ai`). Brisbane + Ipswich coordinates are built in.
 
 ## Run once
 

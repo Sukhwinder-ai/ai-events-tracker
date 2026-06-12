@@ -21,13 +21,14 @@ describe("Dashboard", () => {
     expect(screen.queryByText("RAG Night")).toBeNull();
   });
 
-  it("filters to Ipswich when the Ipswich pill is clicked", () => {
+  it("filters to Ipswich when the city dropdown is set to Ipswich", () => {
     const events = [
       view({ id: "1", title: "Bris Event", city: "brisbane" }),
       view({ id: "2", title: "Ips Event", city: "ipswich" }),
     ];
     render(<Dashboard initialEvents={events} action={vi.fn()} />);
-    fireEvent.click(screen.getByText("Ipswich"));
+    fireEvent.click(screen.getByRole("button", { name: "City" }));
+    fireEvent.click(screen.getByRole("button", { name: "Ipswich" }));
     expect(screen.queryByText("Bris Event")).toBeNull();
     expect(screen.getByText("Ips Event")).toBeDefined();
   });

@@ -1,6 +1,5 @@
 import os
 from dataclasses import dataclass
-from typing import List
 
 from dotenv import load_dotenv
 
@@ -9,12 +8,7 @@ from dotenv import load_dotenv
 class Config:
     supabase_url: str
     supabase_key: str
-    ai_queries: List[str]
-    ai_calendars: List[str]
-
-
-def _split(value: str) -> List[str]:
-    return [item.strip() for item in value.split(",") if item.strip()]
+    category_slug: str
 
 
 def load_config() -> Config:
@@ -28,6 +22,5 @@ def load_config() -> Config:
     return Config(
         supabase_url=url,
         supabase_key=key,
-        ai_queries=_split(os.getenv("LUMA_AI_QUERIES", "")),
-        ai_calendars=_split(os.getenv("LUMA_AI_CALENDARS", "")),
+        category_slug=os.getenv("LUMA_CATEGORY_SLUG", "ai"),
     )

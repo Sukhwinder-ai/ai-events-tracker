@@ -25,6 +25,5 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          LUMA_AI_CALENDARS: ${{ secrets.LUMA_AI_CALENDARS }}
-          LUMA_AI_QUERIES: ${{ secrets.LUMA_AI_QUERIES }}
+          LUMA_CATEGORY_SLUG: ${{ secrets.LUMA_CATEGORY_SLUG }}
         run: python run.py

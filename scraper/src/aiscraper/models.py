@@ -11,6 +11,7 @@ class RawEvent:
     url: Optional[str]
     is_free: Optional[bool]
     source: str
+    city: Optional[str] = None
 
 
 @dataclass

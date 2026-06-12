@@ -28,7 +28,7 @@ def make_dedup_key(title: str, starts_at: Optional[str], venue: Optional[str]) -
 
 
 def to_event(raw: RawEvent) -> Optional[Event]:
-    city = detect_city(raw.location)
+    city = raw.city or detect_city(raw.location)
     if city is None:
         return None
     cost = "free" if raw.is_free else "paid"

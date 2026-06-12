@@ -35,3 +35,21 @@ def test_to_event_maps_free_and_city():
 def test_to_event_returns_none_when_city_unknown():
     raw = RawEvent("X", "2026-06-18T18:00:00+10:00", "Sydney", "u", True, "luma")
     assert to_event(raw) is None
+
+
+def test_to_event_prefers_raw_city_over_location_detection():
+    # The discover API tags the queried city explicitly; the location is just a
+    # suburb ("Fortitude Valley") with no 'brisbane' substring to detect.
+    raw = RawEvent(
+        title="AI Builders Night",
+        starts_at="2026-06-18T18:00:00+10:00",
+        location="Fortitude Valley",
+        url="https://lu.ma/ai",
+        is_free=False,
+        source="luma",
+        city="brisbane",
+    )
+    ev = to_event(raw)
+    assert ev is not None
+    assert ev.city == "brisbane"
+    assert ev.venue == "Fortitude Valley"

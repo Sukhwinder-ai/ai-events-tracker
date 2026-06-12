@@ -3,14 +3,14 @@ from supabase import create_client
 
 from aiscraper.config import load_config
 from aiscraper.pipeline import run_pipeline
-from aiscraper.sources.luma import LumaSource
+from aiscraper.sources.luma import LumaSource, DEFAULT_CITIES
 from aiscraper.writer import SupabaseWriter
 
 
 def main() -> None:
     cfg = load_config()
     client = create_client(cfg.supabase_url, cfg.supabase_key)
-    source = LumaSource(ai_calendars=cfg.ai_calendars, ai_queries=cfg.ai_queries)
+    source = LumaSource(cities=DEFAULT_CITIES, slug=cfg.category_slug)
     writer = SupabaseWriter(client)
     result = run_pipeline(source, writer, source_name="luma")
     print(

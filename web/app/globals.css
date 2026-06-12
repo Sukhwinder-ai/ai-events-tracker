@@ -51,3 +51,78 @@ body {
   background: var(--green); color: #fff; font-size: 11px; font-weight: 800;
   letter-spacing: 0.5px; padding: 3px 9px; border-radius: 999px;
 }
+
+button {
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(79, 110, 240, 0.35);
+  border-radius: 9px;
+  padding: 6px 12px;
+  transition: border-color 0.12s ease, color 0.12s ease,
+    background 0.12s ease, box-shadow 0.12s ease, transform 0.06s ease;
+}
+button:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(79, 110, 240, 0.06);
+}
+button:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(79, 110, 240, 0.25);
+}
+button:active {
+  transform: translateY(1px) scale(0.98);
+}
+button[aria-pressed="true"] {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(79, 110, 240, 0.35);
+}
+
+input,
+select {
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(79, 110, 240, 0.18);
+}
+select { cursor: pointer; }
+
+.dd-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink);
+  box-shadow: none;
+  white-space: nowrap;
+}
+.dd-option:hover {
+  background: rgba(79, 110, 240, 0.12);
+  color: var(--accent);
+  border: none;
+}
+.dd-option.is-selected {
+  background: var(--accent);
+  color: #fff;
+}
+.dd-option.is-selected:hover {
+  background: var(--accent);
+  color: #fff;
+}

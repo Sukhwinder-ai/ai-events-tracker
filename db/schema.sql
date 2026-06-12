@@ -33,3 +33,32 @@ create index if not exists events_starts_at_idx on events (starts_at);
 create index if not exists events_city_idx on events (city);
 create index if not exists events_status_idx on events (status);
 create index if not exists events_first_seen_run_idx on events (first_seen_run);
+
+-- Row Level Security.
+-- The dashboard reads (and writes status) with the public anon key, so anon
+-- needs SELECT on both tables and UPDATE on events. The scraper uses the
+-- service_role key, which bypasses RLS entirely — no write policy needed.
+alter table scrape_runs enable row level security;
+alter table events enable row level security;
+
+create policy "public read scrape_runs"
+  on scrape_runs for select
+  to anon, authenticated
+  using (true);
+
+create policy "public read events"
+  on events for select
+  to anon, authenticated
+  using (true);
+
+create policy "public update events"
+  on events for update
+  to anon, authenticated
+  using (true)
+  with check (true);
+
+-- Limit the public UPDATE to the `status` column only. The RLS policy above
+-- allows the row; this column grant ensures anon can write nothing but status
+-- (title, url, etc. stay read-only to the browser).
+revoke update on events from anon, authenticated;
+grant update (status) on events to anon, authenticated;
