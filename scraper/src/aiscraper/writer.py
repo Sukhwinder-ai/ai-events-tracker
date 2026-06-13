@@ -49,6 +49,21 @@ class SupabaseWriter:
         self._close_run(run_id, found=len(events), new=new_count)
         return RunResult(run_id=run_id, found=len(events), new=new_count)
 
+    def purge_past(self, before_iso: str) -> int:
+        """Delete events that already happened (starts_at < before_iso).
+
+        Guardrail: this is the ONLY delete in the system, and it is scoped
+        purely by starts_at. Undated rows (starts_at IS NULL) and events at or
+        after the boundary are never matched, so nothing current is removed.
+        """
+        resp = (
+            self.client.table("events")
+            .delete()
+            .lt("starts_at", before_iso)
+            .execute()
+        )
+        return len(resp.data or [])
+
     def _open_run(self, source: str) -> int:
         resp = self.client.table("scrape_runs").insert({"source": source}).execute()
         return resp.data[0]["id"]

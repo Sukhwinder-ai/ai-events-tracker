@@ -2,6 +2,7 @@
 from supabase import create_client
 
 from aiscraper.config import load_config
+from aiscraper.dates import start_of_today
 from aiscraper.pipeline import run_pipeline
 from aiscraper.sources.eventbrite import (
     EventbriteSource,
@@ -37,6 +38,11 @@ def main() -> None:
         f"Run {result.run_id}: found {result.found} events, "
         f"{result.new} new."
     )
+
+    # Drop events that have already happened (before today, Brisbane time).
+    # This is the only delete in the system and is scoped strictly by date.
+    removed = writer.purge_past(start_of_today())
+    print(f"Purged {removed} past events.")
 
 
 if __name__ == "__main__":
