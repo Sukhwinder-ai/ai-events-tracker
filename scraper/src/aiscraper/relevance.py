@@ -1,47 +1,32 @@
 import re
 from typing import Optional
 
-# Broad AI/tech allowlist. Meetup/Eventbrite's keyword search is loose and
-# returns lifestyle/networking noise, so we keep only events whose title shows
-# a real AI signal — or an adjacent tech-community signal AI folks care about.
-_ALLOW = [
-    # Core AI / ML
-    r"\bai\b", r"\bml\b", r"a\.i\.", r"artificial intelligence",
-    r"machine learning", r"deep learning", r"neural", r"\bnlp\b",
-    r"natural language", r"computer vision", r"\bllms?\b",
-    r"large language model", r"\bgpt\b", r"chatgpt", r"generative",
-    r"\bgen ?ai\b", r"prompt engineering", r"\brag\b", r"agentic",
-    r"\bai agents?\b", r"mlops", r"data science", r"data engineering",
-    # Branded AI tools / labs
-    r"openai", r"anthropic", r"\bclaude\b", r"\bgemini\b", r"copilot",
-    r"perplexity", r"\bllama\b", r"mistral", r"hugging ?face", r"langchain",
-    r"stable diffusion", r"midjourney", r"transformers?",
-    # Adjacent tech communities (broad mode)
-    r"databricks", r"snowflake", r"\baws\b", r"\bazure\b", r"google cloud",
-    r"\bgcp\b", r"\bgdg\b", r"google developer", r"microsoft fabric",
-    r"kubernetes",
-]
-
-# Even with an AI token, these wellness/lifestyle terms mark keyword-stuffed
-# spam that isn't really a tech event — drop outright.
+# Keep-by-default filter. Our sources are already scoped to an "AI" search, so
+# we trust what they return and only strip out the lifestyle/wellness/social
+# spam that their loose keyword matching drags in. This favours recall over
+# precision: the user would rather see an occasional off-topic event than
+# silently miss a real tech/startup/science one that lacks an obvious AI word.
 _DENY = [
+    # Wellness / self-help spam (often keyword-stuffs "AI" into the title)
     r"breathwork", r"meditation", r"\bmanifest", r"soulmate",
     r"emotionally unavailable", r"\bdating\b", r"energy healing",
+    # Social / language-exchange meetups
+    r"background social", r"easy english", r"lounge asia",
+    # Specific non-tech groups the user flagged as noise
+    r"aibconnect",
 ]
 
-_ALLOW_RE = re.compile("|".join(_ALLOW), re.IGNORECASE)
 _DENY_RE = re.compile("|".join(_DENY), re.IGNORECASE)
 
 
-def is_ai_relevant(title: Optional[str]) -> bool:
-    """True if the event title signals an AI or adjacent-tech event.
+def is_relevant(title: Optional[str]) -> bool:
+    """True unless the title is known lifestyle/wellness/social spam.
 
-    Loose source searches return lifestyle noise; this keeps the dashboard
-    on-topic. A small denylist removes wellness spam that stuffs 'AI' into
-    otherwise-unrelated titles.
+    Keep-by-default: the sources already search for AI, so anything they return
+    is kept unless it matches the denylist. This intentionally errs towards
+    keeping events (recall) so genuinely useful tech/startup/science events that
+    don't spell out "AI" in the title aren't dropped.
     """
     if not title:
         return False
-    if _DENY_RE.search(title):
-        return False
-    return bool(_ALLOW_RE.search(title))
+    return not _DENY_RE.search(title)
