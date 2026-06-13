@@ -37,6 +37,20 @@ def test_to_event_returns_none_when_city_unknown():
     assert to_event(raw) is None
 
 
+def test_to_event_returns_none_when_title_not_ai_relevant():
+    # Loose source searches surface lifestyle noise in our cities; the title
+    # relevance gate drops them even though the city is valid.
+    raw = RawEvent(
+        title="Guided Meditation @ New Farm Library",
+        starts_at="2026-06-18T18:00:00+10:00",
+        location="Brisbane",
+        url="https://meetup.com/x",
+        is_free=True,
+        source="meetup",
+    )
+    assert to_event(raw) is None
+
+
 def test_to_event_prefers_raw_city_over_location_detection():
     # The discover API tags the queried city explicitly; the location is just a
     # suburb ("Fortitude Valley") with no 'brisbane' substring to detect.

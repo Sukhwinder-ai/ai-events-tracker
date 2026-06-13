@@ -2,6 +2,7 @@ import re
 from typing import Optional
 
 from aiscraper.models import Event, RawEvent
+from aiscraper.relevance import is_ai_relevant
 
 _CITIES = ("brisbane", "ipswich")
 
@@ -30,6 +31,8 @@ def make_dedup_key(title: str, starts_at: Optional[str], venue: Optional[str]) -
 def to_event(raw: RawEvent) -> Optional[Event]:
     city = raw.city or detect_city(raw.location)
     if city is None:
+        return None
+    if not is_ai_relevant(raw.title):
         return None
     cost = "free" if raw.is_free else "paid"
     return Event(
