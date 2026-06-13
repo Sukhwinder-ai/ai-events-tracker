@@ -45,6 +45,27 @@ export function filterEvents(events: EventView[], opts: FilterOptions): EventVie
   });
 }
 
+/** Keeps events happening today or later, by calendar day in the viewer's
+ *  local timezone — so an event earlier today still shows, but yesterday's
+ *  are dropped. Undated events are kept (we can't know they've passed). */
+export function filterUpcoming(events: EventView[], now: Date = new Date()): EventView[] {
+  const startOfToday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+  ).getTime();
+  return events.filter((e) => {
+    if (!e.starts_at) return true;
+    const d = new Date(e.starts_at);
+    const eventDay = new Date(
+      d.getFullYear(),
+      d.getMonth(),
+      d.getDate(),
+    ).getTime();
+    return eventDay >= startOfToday;
+  });
+}
+
 export type SortKey = "date" | "newest";
 
 export function sortEvents(events: EventView[], key: SortKey): EventView[] {

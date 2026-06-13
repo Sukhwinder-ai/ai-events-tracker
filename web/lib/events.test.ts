@@ -73,6 +73,37 @@ describe("filterEvents", () => {
   });
 });
 
+import { filterUpcoming } from "./events";
+
+describe("filterUpcoming", () => {
+  const now = new Date("2026-06-13T09:00:00+10:00");
+  const events = [
+    view({ id: "past", starts_at: "2026-06-11T18:00:00+10:00" }),
+    view({ id: "today-earlier", starts_at: "2026-06-13T07:00:00+10:00" }),
+    view({ id: "today-later", starts_at: "2026-06-13T20:00:00+10:00" }),
+    view({ id: "future", starts_at: "2026-06-20T18:00:00+10:00" }),
+  ];
+
+  it("drops events whose date is before today", () => {
+    expect(filterUpcoming(events, now).map((e) => e.id)).toEqual([
+      "today-earlier",
+      "today-later",
+      "future",
+    ]);
+  });
+
+  it("keeps every event that happens today, regardless of time", () => {
+    const ids = filterUpcoming(events, now).map((e) => e.id);
+    expect(ids).toContain("today-earlier");
+    expect(ids).toContain("today-later");
+  });
+
+  it("keeps events with no date rather than guessing", () => {
+    const undated = [view({ id: "x", starts_at: null })];
+    expect(filterUpcoming(undated, now).map((e) => e.id)).toEqual(["x"]);
+  });
+});
+
 describe("sortEvents", () => {
   const a = view({ id: "a", starts_at: "2026-06-20T00:00:00Z", created_at: "2026-06-01T00:00:00Z" });
   const b = view({ id: "b", starts_at: "2026-06-14T00:00:00Z", created_at: "2026-06-10T00:00:00Z" });

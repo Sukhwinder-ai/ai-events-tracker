@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import EventCard from "./EventCard";
 import Controls, { type ControlsState } from "./Controls";
-import { filterEvents, sortEvents, visibleInTab } from "@/lib/events";
+import { filterEvents, filterUpcoming, sortEvents, visibleInTab } from "@/lib/events";
 import type { EventView, StatusValue } from "@/lib/types";
 
 export default function Dashboard({
@@ -35,7 +35,8 @@ export default function Dashboard({
   }
 
   const shown = useMemo(() => {
-    const byTab = events.filter((e) => visibleInTab(s.tab, e.status));
+    const upcoming = filterUpcoming(events);
+    const byTab = upcoming.filter((e) => visibleInTab(s.tab, e.status));
     const filtered = filterEvents(byTab, {
       city: s.city, freeOnly: s.freeOnly, newOnly: s.newOnly, search: s.search,
     });
@@ -65,14 +66,7 @@ export default function Dashboard({
           <Controls state={s} onChange={update} newCount={newCount} />
         </div>
       </div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 12,
-          marginTop: 16,
-        }}
-      >
+      <div className="events-grid" style={{ marginTop: 16 }}>
         {shown.map((e) => (
           <EventCard key={e.id} event={e} onSetStatus={handleSetStatus} />
         ))}
