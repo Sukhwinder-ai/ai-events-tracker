@@ -1,5 +1,20 @@
 import type { EventRow, EventView } from "./types";
 
+/** Returns the url only if it's a safe http(s) link, else "#". Event urls are
+ *  scraped from third-party sites, so this blocks javascript:/data: schemes
+ *  from ever reaching an anchor's href. */
+export function safeHref(url: string | null | undefined): string {
+  if (!url) return "#";
+  try {
+    const parsed = new URL(url.trim());
+    return parsed.protocol === "http:" || parsed.protocol === "https:"
+      ? url
+      : "#";
+  } catch {
+    return "#";
+  }
+}
+
 export function markNew(events: EventRow[], latestRun: number | null): EventView[] {
   return events.map((e) => ({
     ...e,

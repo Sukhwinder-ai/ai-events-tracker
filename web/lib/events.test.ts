@@ -1,6 +1,26 @@
 import { describe, it, expect } from "vitest";
-import { markNew } from "./events";
+import { markNew, safeHref } from "./events";
 import type { EventRow } from "./types";
+
+describe("safeHref", () => {
+  it("keeps http and https urls", () => {
+    expect(safeHref("https://lu.ma/ai")).toBe("https://lu.ma/ai");
+    expect(safeHref("http://meetup.com/x")).toBe("http://meetup.com/x");
+  });
+
+  it("rejects javascript: and data: schemes", () => {
+    expect(safeHref("javascript:alert(1)")).toBe("#");
+    expect(safeHref("JavaScript:alert(1)")).toBe("#");
+    expect(safeHref("  javascript:alert(1)")).toBe("#");
+    expect(safeHref("data:text/html,<script>alert(1)</script>")).toBe("#");
+  });
+
+  it("falls back to # for null, empty, or unparseable urls", () => {
+    expect(safeHref(null)).toBe("#");
+    expect(safeHref("")).toBe("#");
+    expect(safeHref("not a url")).toBe("#");
+  });
+});
 
 function row(partial: Partial<EventRow>): EventRow {
   return {

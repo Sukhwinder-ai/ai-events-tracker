@@ -1,5 +1,6 @@
 "use client";
 
+import { safeHref } from "@/lib/events";
 import type { EventView, StatusValue } from "@/lib/types";
 
 function monthDay(iso: string | null): { mon: string; day: string } {
@@ -29,7 +30,7 @@ export default function EventCard({
           <div style={{ color: "var(--accent)", fontWeight: 700, fontSize: 11, textTransform: "uppercase" }}>{mon}</div>
           <div style={{ fontWeight: 800, fontSize: 18 }}>{day}</div>
         </div>
-        <a href={event.url ?? "#"} target="_blank" rel="noreferrer" style={{ fontWeight: 650, fontSize: 14, lineHeight: 1.3, color: "var(--ink)", textDecoration: "none" }}>
+        <a href={safeHref(event.url)} target="_blank" rel="noreferrer" style={{ fontWeight: 650, fontSize: 14, lineHeight: 1.3, color: "var(--ink)", textDecoration: "none" }}>
           {event.title}
         </a>
       </div>
