@@ -25,8 +25,12 @@ Then edit `.env` and fill in:
 - `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (from the Supabase
   Dashboard -> Project Settings -> API). The service_role key is secret and
   write-only for the scraper — never expose it to a browser.
-- `LUMA_CATEGORY_SLUG` — Luma discover category slug to pull (defaults to
-  `ai`). Brisbane + Ipswich coordinates are built in.
+- `LUMA_CATEGORY_SLUG` — Luma discover *category slug* (defaults to `ai`).
+- `MEETUP_KEYWORDS` — Meetup free-text *search keywords* (defaults to `ai`).
+
+  Each source has its own query and they are **not** interchangeable — a Luma
+  category slug is not a Meetup search term. Tune them independently; never
+  feed one value to both. Brisbane + Ipswich locations are built in.
 
 ## Run once
 
@@ -40,8 +44,13 @@ Prints `Run <id>: found N events, M new.`
 
 ## How AI filtering works
 
-We never pull the whole city feed. We query Luma's AI calendars plus AI search
-terms, so the results are already AI-relevant. Filtering happens at query time.
+We never pull the whole city feed. Each source is queried for AI at the source
+— Luma by category slug, Meetup by keywords — so results arrive already
+AI-relevant. Filtering happens at query time.
+
+Because each site interprets a query differently, the queries are configured
+per source. Sharing one value across sources looks harmless and is not: it is
+how the removed Eventbrite source ended up matching ~1 relevant event in 20.
 
 ## Playwright (optional)
 

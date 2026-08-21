@@ -1,7 +1,7 @@
 """CLI entry point. Builds every event source + Supabase writer and runs once."""
 from supabase import create_client
 
-from aiscraper.config import load_config
+from aiscraper.config import Config, load_config
 from aiscraper.dates import start_of_today
 from aiscraper.pipeline import run_pipeline
 from aiscraper.sources.luma import LumaSource, DEFAULT_CITIES as LUMA_CITIES
@@ -13,8 +13,14 @@ from aiscraper.sources.multi import MultiSource
 from aiscraper.writer import SupabaseWriter
 
 
-def build_source(slug: str) -> MultiSource:
+def build_source(cfg: Config) -> MultiSource:
     """All sources, scoped to the AI topic + Brisbane/Ipswich at query time.
+
+    Each source gets its OWN query from config. They are not interchangeable:
+    Luma takes a discover *category slug*, Meetup takes free-text *keywords*,
+    and the same string does not mean the same thing to both. Sharing one
+    value is what made Eventbrite useless (see below), so don't reintroduce it
+    when adding a source — give the new source its own config field.
 
     Eventbrite was removed 2026-08-21. Its CDN (CloudFront) answers 405 to
     every request from GitHub Actions runner IPs (Azure AS8075), so the source
@@ -26,8 +32,8 @@ def build_source(slug: str) -> MultiSource:
     """
     return MultiSource(
         [
-            LumaSource(cities=LUMA_CITIES, slug=slug),
-            MeetupSource(cities=MEETUP_CITIES, keywords=slug),
+            LumaSource(cities=LUMA_CITIES, slug=cfg.luma_slug),
+            MeetupSource(cities=MEETUP_CITIES, keywords=cfg.meetup_keywords),
         ]
     )
 
@@ -35,7 +41,7 @@ def build_source(slug: str) -> MultiSource:
 def main() -> None:
     cfg = load_config()
     client = create_client(cfg.supabase_url, cfg.supabase_key)
-    source = build_source(cfg.category_slug)
+    source = build_source(cfg)
     writer = SupabaseWriter(client)
     result = run_pipeline(source, writer, source_name="all")
     print(

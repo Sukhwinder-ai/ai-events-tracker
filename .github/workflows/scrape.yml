@@ -27,5 +27,10 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Per-source queries — each source has its own; never share one value.
           LUMA_CATEGORY_SLUG: ${{ secrets.LUMA_CATEGORY_SLUG }}
+          # Not a secret (it is just a search term), so it stays readable in
+          # logs. The `|| 'ai'` matters: an unset repo variable expands to an
+          # empty string, which would override the code default with "".
+          MEETUP_KEYWORDS: ${{ vars.MEETUP_KEYWORDS || 'ai' }}
         run: python run.py
