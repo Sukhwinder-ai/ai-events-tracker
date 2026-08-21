@@ -29,8 +29,12 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           # Per-source queries — each source has its own; never share one value.
           LUMA_CATEGORY_SLUG: ${{ secrets.LUMA_CATEGORY_SLUG }}
-          # Not a secret (it is just a search term), so it stays readable in
+          # A plain variable, not a secret — a search term is not sensitive.
+          # Note it STILL prints as *** today: GitHub masks every occurrence of
+          # any secret's value, and LUMA_CATEGORY_SLUG (a secret) is also "ai".
+          # Making the Luma slug a variable too is what would restore readable
           # logs. The `|| 'ai'` matters: an unset repo variable expands to an
-          # empty string, which would override the code default with "".
+          # empty string, and os.getenv treats "" as set, so Meetup would
+          # search for nothing.
           MEETUP_KEYWORDS: ${{ vars.MEETUP_KEYWORDS || 'ai' }}
         run: python run.py
