@@ -1,9 +1,14 @@
 # AI Events Scraper
 
-Python scraper that fetches AI events from [Luma](https://lu.ma) using
-query-time filtering (it only ever asks Luma for AI calendars / AI search
-terms, so results are already relevant — no LLM, no API cost), dedups them,
-and writes them to Supabase. Runs weekly (Mondays) via GitHub Actions.
+Python scraper that fetches AI events from [Luma](https://lu.ma) and
+[Meetup](https://www.meetup.com) using query-time filtering (it only ever asks
+for AI calendars / AI search terms, so results are already relevant — no LLM,
+no API cost), dedups them, and writes them to Supabase. Runs weekly (Mondays)
+via GitHub Actions.
+
+An Eventbrite source was removed on 2026-08-21: its CDN returns `405` to every
+GitHub Actions runner IP, so it silently contributed nothing from CI. See
+`build_source` in `run.py` before considering a revival.
 
 ## Setup
 

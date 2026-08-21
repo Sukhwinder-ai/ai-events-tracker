@@ -4,10 +4,6 @@ from supabase import create_client
 from aiscraper.config import load_config
 from aiscraper.dates import start_of_today
 from aiscraper.pipeline import run_pipeline
-from aiscraper.sources.eventbrite import (
-    EventbriteSource,
-    DEFAULT_CITIES as EVENTBRITE_CITIES,
-)
 from aiscraper.sources.luma import LumaSource, DEFAULT_CITIES as LUMA_CITIES
 from aiscraper.sources.meetup import (
     MeetupSource,
@@ -18,12 +14,20 @@ from aiscraper.writer import SupabaseWriter
 
 
 def build_source(slug: str) -> MultiSource:
-    """All sources, scoped to the AI topic + Brisbane/Ipswich at query time."""
+    """All sources, scoped to the AI topic + Brisbane/Ipswich at query time.
+
+    Eventbrite was removed 2026-08-21. Its CDN (CloudFront) answers 405 to
+    every request from GitHub Actions runner IPs (Azure AS8075), so the source
+    returned nothing from CI since deployment while succeeding from a local
+    AU IP — there is no code-side fix. It was also querying with the Luma
+    `ai` slug, which on Eventbrite matched ~1 relevant event in 20. If it is
+    ever revived (proxy / self-hosted runner), give it its own query
+    (`artificial-intelligence` scored 14/18) rather than reusing the slug.
+    """
     return MultiSource(
         [
             LumaSource(cities=LUMA_CITIES, slug=slug),
             MeetupSource(cities=MEETUP_CITIES, keywords=slug),
-            EventbriteSource(cities=EVENTBRITE_CITIES, query=slug),
         ]
     )
 

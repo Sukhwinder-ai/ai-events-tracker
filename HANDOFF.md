@@ -25,7 +25,7 @@ A personal/internal dashboard that tracks AI events across **Brisbane and Ipswic
 2. **Wire the scraper**: `cp scraper/.env.example scraper/.env`, fill `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (and optionally `LUMA_AI_CALENDARS` / `LUMA_AI_QUERIES`). Run a live scrape (see How to run) and confirm rows land in `events`. This is the first real-world test — watch for Luma API/response-shape surprises.
 3. **Wire the dashboard**: `cp web/.env.local.example web/.env.local`, fill `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`. `cd web && npm run dev`, open http://localhost:3000, confirm the seed/scraped events render. Smoke-test: click Skip → event vanishes from All → appears under the Skipped tab.
 4. **Deploy**: push `main` to a new GitHub repo. Import into Vercel with **root directory `web`** + the two `NEXT_PUBLIC_` env vars. Add `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` as GitHub Actions secrets so the weekly `.github/workflows/scrape.yml` cron can run.
-5. **Later expansion** (designed for, not built): add Meetup, Eventbrite, Humanitix, and UQ/QUT/Griffith sources alongside Luma under `scraper/src/aiscraper/sources/`.
+5. **Sources**: Luma + Meetup are live under `scraper/src/aiscraper/sources/`. Eventbrite was built but removed 2026-08-21 — CloudFront 405s every GitHub Actions runner IP, so it never contributed from CI (see `run.py:build_source`). Humanitix and UQ/QUT/Griffith remain designed-for, not built.
 
 ## Key decisions & why
 - **Query-time AI filtering, NO LLM classifier** — the scraper queries Luma's AI calendars/search terms so results arrive pre-filtered. This deliberately avoids an Anthropic/Haiku API call and its cost. Do not re-introduce a post-fetch keyword/LLM filter.
