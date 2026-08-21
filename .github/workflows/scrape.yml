@@ -1,9 +1,11 @@
-name: Fortnightly AI events scrape
+name: Weekly AI events scrape
 
 on:
   schedule:
-    # 02:00 UTC on the 1st and 15th of each month ≈ fortnightly
-    - cron: "0 2 1,15 * *"
+    # 02:00 UTC every Monday. Weekly (not fortnightly) so the cadence stays
+    # inside Supabase free-tier's ~7-day inactivity window — the scrape doubles
+    # as the keep-alive that stops the project auto-pausing between runs.
+    - cron: "0 2 * * 1"
   workflow_dispatch: {}   # allow manual runs from the Actions tab
 
 jobs:

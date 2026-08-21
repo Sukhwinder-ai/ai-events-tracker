@@ -3,7 +3,7 @@
 Python scraper that fetches AI events from [Luma](https://lu.ma) using
 query-time filtering (it only ever asks Luma for AI calendars / AI search
 terms, so results are already relevant — no LLM, no API cost), dedups them,
-and writes them to Supabase. Designed to run fortnightly via GitHub Actions.
+and writes them to Supabase. Runs weekly (Mondays) via GitHub Actions.
 
 ## Setup
 
