@@ -31,6 +31,10 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Second-pass relevance filter (aiscraper/ai_filter.py). Optional:
+          # when the secret is missing the step logs "AI filter skipped" and
+          # keeps every event, so a missing key can never empty the dashboard.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           # Per-source queries — each source has its own; never share one value.
           LUMA_CATEGORY_SLUG: ${{ secrets.LUMA_CATEGORY_SLUG }}
           # A plain variable, not a secret — a search term is not sensitive.

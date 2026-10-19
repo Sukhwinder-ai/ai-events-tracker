@@ -2,8 +2,9 @@
 
 Python scraper that fetches AI events from [Luma](https://lu.ma) and
 [Meetup](https://www.meetup.com) using query-time filtering (it only ever asks
-for AI calendars / AI search terms, so results are already relevant — no LLM,
-no API cost), dedups them, and writes them to Supabase. Runs every 3 days
+for AI calendars / AI search terms), dedups them, runs the surviving titles
+past Claude in ONE call per run (`ai_filter.py`; optional, fails open when
+`ANTHROPIC_API_KEY` is unset), and writes them to Supabase. Runs every 3 days
 via GitHub Actions (the run also keeps the free-tier Supabase project awake).
 
 An Eventbrite source was removed on 2026-08-21: its CDN returns `405` to every
