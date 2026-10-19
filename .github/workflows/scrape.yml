@@ -1,11 +1,15 @@
-name: Weekly AI events scrape
+name: AI events scrape
 
 on:
   schedule:
-    # 02:00 UTC every Monday. Weekly (not fortnightly) so the cadence stays
-    # inside Supabase free-tier's ~7-day inactivity window — the scrape doubles
-    # as the keep-alive that stops the project auto-pausing between runs.
-    - cron: "0 2 * * 1"
+    # 02:00 UTC every 3rd day of the month. The scrape doubles as the keep-alive
+    # for Supabase free tier, which pauses a project after ~7 days idle.
+    # Weekly was NOT enough: GitHub delays scheduled runs (24 Aug fired 02:56,
+    # 31 Aug fired 07:56), so 7 days + delay crossed the window, the project
+    # paused, and every run from 31 Aug to 12 Oct failed on DNS. Every 3 days
+    # leaves 4+ days of headroom for scheduler delay. (The */3 day-of-month
+    # step resets at month end, so gaps are 1-3 days, never longer.)
+    - cron: "0 2 */3 * *"
   workflow_dispatch: {}   # allow manual runs from the Actions tab
 
 jobs:
