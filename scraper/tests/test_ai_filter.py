@@ -34,8 +34,9 @@ def test_drops_only_events_marked_false():
     events = [_ev("Claude Code Workshop"), _ev("Pencil Figure Sketching"),
               _ev("AWS User Group")]
     client = fake_client(keep=[True, False, True])
-    kept = ai_filter(events, client=client)
+    kept, rejected = ai_filter(events, client=client)
     assert [e.title for e in kept] == ["Claude Code Workshop", "AWS User Group"]
+    assert [e.title for e in rejected] == ["Pencil Figure Sketching"]
 
 
 def test_one_api_call_per_run_with_all_titles_numbered():
@@ -51,19 +52,19 @@ def test_one_api_call_per_run_with_all_titles_numbered():
 def test_fails_open_on_api_error():
     events = [_ev("A"), _ev("B")]
     client = fake_client(raise_exc=RuntimeError("boom"))
-    assert ai_filter(events, client=client) == events
+    assert ai_filter(events, client=client) == (events, [])
 
 
 def test_fails_open_on_refusal():
     events = [_ev("A")]
     client = fake_client(keep=[False], stop_reason="refusal")
-    assert ai_filter(events, client=client) == events
+    assert ai_filter(events, client=client) == (events, [])
 
 
 def test_fails_open_on_wrong_verdict_count():
     events = [_ev("A"), _ev("B")]
     client = fake_client(keep=[True])
-    assert ai_filter(events, client=client) == events
+    assert ai_filter(events, client=client) == (events, [])
 
 
 def test_skips_without_api_key(monkeypatch):
@@ -73,5 +74,11 @@ def test_skips_without_api_key(monkeypatch):
 
 def test_empty_input_makes_no_call():
     client = fake_client(keep=[])
-    assert ai_filter([], client=client) == []
+    assert ai_filter([], client=client) == ([], [])
     assert client.messages.calls == []
+
+
+def test_all_false_answer_is_treated_as_bad_and_rejects_nothing():
+    events = [_ev("A"), _ev("B")]
+    client = fake_client(keep=[False, False])
+    assert ai_filter(events, client=client) == (events, [])

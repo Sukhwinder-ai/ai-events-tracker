@@ -64,6 +64,20 @@ class SupabaseWriter:
         )
         return len(resp.data or [])
 
+    def remove_keys(self, keys: List[str]) -> int:
+        """Delete stored events whose dedup_key is in `keys` (events the AI
+        filter rejected). Scoped strictly by dedup_key; an empty list is a
+        no-op, so a skipped filter can never delete anything."""
+        if not keys:
+            return 0
+        resp = (
+            self.client.table("events")
+            .delete()
+            .in_("dedup_key", keys)
+            .execute()
+        )
+        return len(resp.data or [])
+
     def _open_run(self, source: str) -> int:
         resp = self.client.table("scrape_runs").insert({"source": source}).execute()
         return resp.data[0]["id"]

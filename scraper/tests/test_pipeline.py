@@ -20,6 +20,10 @@ class StubWriter:
         new = len(events)
         return RunResult(run_id=1, found=len(events), new=new)
 
+    def remove_keys(self, keys):
+        self.removed = keys
+        return len(keys)
+
 
 def test_pipeline_normalizes_dedups_and_writes():
     raws = [

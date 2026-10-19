@@ -17,7 +17,7 @@ Design rules:
   numbered list of short strings and answers with booleans.
 """
 import os
-from typing import List, Optional, Sequence
+from typing import List, Optional, Sequence, Tuple
 
 from pydantic import BaseModel, Field
 
@@ -90,13 +90,22 @@ def classify_titles(titles: Sequence[str], client=None) -> Optional[List[bool]]:
     return list(parsed.keep)
 
 
-def ai_filter(events: List[Event], client=None) -> List[Event]:
-    """Drop events Claude judges irrelevant. Keeps everything on any failure."""
+def ai_filter(events: List[Event], client=None) -> Tuple[List[Event], List[Event]]:
+    """Return (kept, rejected). Keeps everything, rejects nothing, on any failure.
+
+    Two fail-open cases beyond a missing verdict: an all-False answer is treated
+    as a bad answer rather than "nothing here is relevant", because `rejected`
+    drives deletions in the database (see SupabaseWriter.remove_keys).
+    """
     verdicts = classify_titles([e.title for e in events], client=client)
     if verdicts is None:
-        return events
+        return events, []
+    if events and not any(verdicts):
+        print("AI filter skipped: rejected every event, treating as a bad answer.")
+        return events, []
     kept = [e for e, keep in zip(events, verdicts) if keep]
-    dropped = [e.title for e, keep in zip(events, verdicts) if not keep]
-    if dropped:
-        print(f"AI filter dropped {len(dropped)}: " + " | ".join(dropped))
-    return kept
+    rejected = [e for e, keep in zip(events, verdicts) if not keep]
+    if rejected:
+        print(f"AI filter dropped {len(rejected)}: "
+              + " | ".join(e.title for e in rejected))
+    return kept, rejected
