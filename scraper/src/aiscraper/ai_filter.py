@@ -27,9 +27,10 @@ MODEL = "claude-sonnet-5-5"
 
 # More than this share rejected in one run is treated as a bad answer, not a
 # verdict: `rejected` drives deletions, and an over-eager model must not be able
-# to wipe the dashboard. (Opus rejected ~19% of a real run; Haiku 4.5 rejected
-# ~37% and dropped genuine AI events, which is why it is not used.)
-MAX_REJECT_SHARE = 0.30
+# to wipe the dashboard. A catastrophe guard, not a quality bar: Sonnet 5.5
+# rejected ~32% of a noisy real run and every title it named was fair, so 30%
+# was too tight. (Haiku 4.5 dropped genuine AI meetups, so it is not used.)
+MAX_REJECT_SHARE = 0.50
 
 _SYSTEM = (
     "You screen event titles for a small Brisbane AI consultancy whose team "
