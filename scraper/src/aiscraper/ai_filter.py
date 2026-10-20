@@ -23,7 +23,7 @@ from pydantic import BaseModel, Field
 
 from aiscraper.models import Event
 
-MODEL = "claude-opus-5-5"
+MODEL = "claude-haiku-4-5"
 
 _SYSTEM = (
     "You screen event titles for a small Brisbane AI consultancy whose team "
@@ -72,7 +72,6 @@ def classify_titles(titles: Sequence[str], client=None) -> Optional[List[bool]]:
             model=MODEL,
             max_tokens=4000,
             system=_SYSTEM,
-            output_config={"effort": "low"},
             messages=[{"role": "user", "content": _prompt(titles)}],
             output_format=Verdicts,
         )
