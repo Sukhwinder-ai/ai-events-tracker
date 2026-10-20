@@ -23,7 +23,13 @@ from pydantic import BaseModel, Field
 
 from aiscraper.models import Event
 
-MODEL = "claude-haiku-4-5"
+MODEL = "claude-sonnet-5-5"
+
+# More than this share rejected in one run is treated as a bad answer, not a
+# verdict: `rejected` drives deletions, and an over-eager model must not be able
+# to wipe the dashboard. (Opus rejected ~19% of a real run; Haiku 4.5 rejected
+# ~37% and dropped genuine AI events, which is why it is not used.)
+MAX_REJECT_SHARE = 0.30
 
 _SYSTEM = (
     "You screen event titles for a small Brisbane AI consultancy whose team "
@@ -72,6 +78,7 @@ def classify_titles(titles: Sequence[str], client=None) -> Optional[List[bool]]:
             model=MODEL,
             max_tokens=4000,
             system=_SYSTEM,
+            output_config={"effort": "low"},
             messages=[{"role": "user", "content": _prompt(titles)}],
             output_format=Verdicts,
         )
@@ -104,6 +111,10 @@ def ai_filter(events: List[Event], client=None) -> Tuple[List[Event], List[Event
         return events, []
     kept = [e for e, keep in zip(events, verdicts) if keep]
     rejected = [e for e, keep in zip(events, verdicts) if not keep]
+    if len(events) >= 10 and len(rejected) / len(events) > MAX_REJECT_SHARE:
+        print(f"AI filter skipped: wanted to drop {len(rejected)} of "
+              f"{len(events)} events (over {MAX_REJECT_SHARE:.0%}), treating as a bad answer.")
+        return events, []
     if rejected:
         print(f"AI filter dropped {len(rejected)}: "
               + " | ".join(e.title for e in rejected))

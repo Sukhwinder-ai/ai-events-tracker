@@ -82,3 +82,16 @@ def test_all_false_answer_is_treated_as_bad_and_rejects_nothing():
     events = [_ev("A"), _ev("B")]
     client = fake_client(keep=[False, False])
     assert ai_filter(events, client=client) == (events, [])
+
+
+def test_rejecting_too_large_a_share_is_treated_as_a_bad_answer():
+    events = [_ev(f"E{i}") for i in range(10)]
+    client = fake_client(keep=[True] * 6 + [False] * 4)  # 40% > 30%
+    assert ai_filter(events, client=client) == (events, [])
+
+
+def test_rejecting_a_small_share_is_applied():
+    events = [_ev(f"E{i}") for i in range(10)]
+    client = fake_client(keep=[True] * 8 + [False] * 2)  # 20%
+    kept, rejected = ai_filter(events, client=client)
+    assert len(kept) == 8 and len(rejected) == 2
