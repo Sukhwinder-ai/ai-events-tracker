@@ -113,7 +113,8 @@ def ai_filter(events: List[Event], client=None) -> Tuple[List[Event], List[Event
     rejected = [e for e, keep in zip(events, verdicts) if not keep]
     if len(events) >= 10 and len(rejected) / len(events) > MAX_REJECT_SHARE:
         print(f"AI filter skipped: wanted to drop {len(rejected)} of "
-              f"{len(events)} events (over {MAX_REJECT_SHARE:.0%}), treating as a bad answer.")
+              f"{len(events)} events (over {MAX_REJECT_SHARE:.0%}), treating as a bad answer: "
+              + " | ".join(e.title for e in rejected))
         return events, []
     if rejected:
         print(f"AI filter dropped {len(rejected)}: "
